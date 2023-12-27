@@ -1,9 +1,28 @@
 from PIL import Image
 import midiutil
 import os
+from datetime import datetime  # Importa la clase datetime
 
 # Path to the directory containing images
-image_dir = 'C:/Users/Migi/PreTaws/midiToImage/Midi_to_Images/images'
+image_dir = 'C:/Users/Migi/PreTaws/proyectoPreTaws/images'
+
+# Directorio donde se guardarán los archivos MIDI
+output_dir = 'C:/Users/Migi/PreTaws/proyectoPreTaws/output_files'
+
+# Crea la carpeta de salida si no existe
+os.makedirs(output_dir, exist_ok=True)
+
+# Obtén la fecha y hora actual
+current_time = datetime.now()
+
+# Formato de la fecha y hora actual como cadena
+timestamp = current_time.strftime("%Y%m%d%H%M%S")
+
+# Nombre del archivo MIDI con el timestamp
+midi_file_name = f'output_remidi_{timestamp}.mid'
+
+# Ruta completa al archivo MIDI en la carpeta de salida
+midi_file_path = os.path.join(output_dir, midi_file_name)
 
 # Create MIDI file with one track
 midi_file = midiutil.MIDIFile(1)
@@ -63,7 +82,6 @@ for filename in os.listdir(image_dir):
                                   time=(note_start_time * time_adjustment),
                                   duration=(note_duration * time_adjustment), volume=note_velocity)
 
-# Save the MIDI file with a generic name
-midi_file_name = 'output_remidi.mid'
-with open(midi_file_name, "wb") as file:
+# Save the MIDI file with the timestamped name in the output folder
+with open(midi_file_path, "wb") as file:
     midi_file.writeFile(file)

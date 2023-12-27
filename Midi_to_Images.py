@@ -69,8 +69,8 @@ def create_piano_roll_image(pitches, durations, start_times, parts, filename):
 
     return img
 
-midi_dir = 'C:/Users/Migi/PreTaws/midiToImage/Midi_to_Images/midi_dir'
-image_dir = 'C:/Users/Migi/PreTaws/midiToImage/Midi_to_Images/images'
+midi_dir = 'C:/Users/Migi/PreTaws/proyectoPreTaws/midi_dir'
+image_dir = 'C:/Users/Migi/PreTaws/proyectoPreTaws/images'
 
 # Iterate over all midi files in the directory
 for filename in os.listdir(midi_dir):
