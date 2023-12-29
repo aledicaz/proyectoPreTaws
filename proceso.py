@@ -1,4 +1,19 @@
 import os
+import re
+
+def get_recent_subfolder(midi_dir):
+    subfolder_pattern = '^\d+$'  # Patrón para seleccionar carpetas numeradas
+    subfolders = [f for f in os.listdir(midi_dir) if os.path.isdir(os.path.join(midi_dir, f)) and re.match(subfolder_pattern, f)]
+    subfolders.sort(key=lambda x: int(x))  # Ordenar carpetas numéricamente
+    if subfolders:
+        recent_subfolder = os.path.join(midi_dir, subfolders[-1])  # Tomar la carpeta más reciente
+        return recent_subfolder
+    else:
+        return None
+
+# Uso de la función
+midi_dir = r'C:\Users\Migi\PreTaws\proyectoPreTaws\midi_dir'
+recent_subfolder = get_recent_subfolder(midi_dir)
 
 def obtener_dos_primeros_archivos(carpeta_principal):
     # Obtener subcarpetas numeradas
@@ -28,8 +43,7 @@ def obtener_dos_primeros_archivos(carpeta_principal):
     return full_paths
 
 # Uso de la función
-midi_dir = r'C:\Users\Migi\PreTaws\proyectoPreTaws\midi_dir\1703868003'
-archivos = obtener_dos_primeros_archivos(midi_dir)
+archivos = obtener_dos_primeros_archivos(recent_subfolder)
 
 if archivos:
     print("Dos primeros archivos en la subcarpeta más reciente:", archivos)
