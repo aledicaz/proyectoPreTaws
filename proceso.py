@@ -6,6 +6,7 @@ from Midi_to_Images import extract_arrays_from_midi_file
 from Midi_to_Images import create_piano_roll_image
 from datetime import datetime  
 
+
 def get_recent_subfolder(midi_dir):
     subfolder_pattern = '^\d+$'  # Patrón para seleccionar carpetas numeradas
     subfolders = [f for f in os.listdir(midi_dir) if os.path.isdir(os.path.join(midi_dir, f)) and re.match(subfolder_pattern, f)]
@@ -22,7 +23,7 @@ def obtener_dos_primeros_archivos(carpeta_principal):
 
     if not subfolders:
         print("No se encontraron subcarpetas numeradas.")
-        return None
+        return None, None
 
     # Ordenar las subcarpetas numéricamente y obtener la última
     latest_subfolder = max(subfolders, key=int)
@@ -33,7 +34,7 @@ def obtener_dos_primeros_archivos(carpeta_principal):
 
     if len(files_in_subfolder) < 2:
         print(f"No hay suficientes archivos en la subcarpeta {latest_subfolder}.")
-        return None
+        return None, None
 
     # Tomar los dos primeros archivos
     first_two_files = files_in_subfolder[:2]
@@ -67,7 +68,6 @@ def main():
                 # Construir la ruta de la carpeta de imágenes
                 subfolder_image_dir = os.path.join(image_dir, os.path.basename(recent_subfolder))
 
-
                 # Crear la carpeta de imágenes si no existe
                 os.makedirs(subfolder_image_dir, exist_ok=True)
 
@@ -78,3 +78,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
