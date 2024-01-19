@@ -84,7 +84,7 @@ def fitness(genome: Genome, s: Server, num_bars: int, num_notes: int, num_steps:
         e.play()
     s.start()
 
-    rating = input("Rating (0-5)")
+    rating = input("Rating (0-5): ")
 
     for e in events:
         e.stop()
@@ -136,16 +136,16 @@ def save_genome_to_midi(filename: str, genome: Genome, num_bars: int, num_notes:
 
 
 @click.command()
-@click.option("--num-bars", default=8, prompt='Number of bars:', type=int)
-@click.option("--num-notes", default=4, prompt='Notes per bar:', type=int)
-@click.option("--num-steps", default=1, prompt='Number of steps:', type=int)
-@click.option("--pauses", default=True, prompt='Introduce Pauses?', type=bool)
-@click.option("--key", default="C", prompt='Key:', type=click.Choice(KEYS, case_sensitive=False))
-@click.option("--scale", default="major", prompt='Scale:', type=click.Choice(SCALES, case_sensitive=False))
-@click.option("--root", default=4, prompt='Scale Root:', type=int)
-@click.option("--population-size", default=10, prompt='Population size:', type=int)
-@click.option("--num-mutations", default=2, prompt='Number of mutations:', type=int)
-@click.option("--mutation-probability", default=0.5, prompt='Mutations probability:', type=float)
+@click.option("--num-bars", default=8, prompt='Número de compases:', type=int)
+@click.option("--num-notes", default=4, prompt='Notas por compás:', type=int)
+@click.option("--num-steps", default=1, prompt='Número de pasos:', type=int)
+@click.option("--pauses", default=True, prompt='¿Desea incluir pausas?', type=bool)
+@click.option("--key", default="C", prompt='Tonalidad:', type=click.Choice(KEYS, case_sensitive=False))
+@click.option("--scale", default="major", prompt='Escala:', type=click.Choice(SCALES, case_sensitive=False))
+@click.option("--root", default=4, prompt='Tónica de la escala:', type=int)
+@click.option("--population-size", default=10, prompt='Tamaño de la población:', type=int)
+@click.option("--num-mutations", default=2, prompt='Número de mutaciones:', type=int)
+@click.option("--mutation-probability", default=0.5, prompt='Probabilidad de mutación:', type=float)
 @click.option("--bpm", default=128, type=int)
 def main(num_bars: int, num_notes: int, num_steps: int, pauses: bool, key: str, scale: str, root: int,
          population_size: int, num_mutations: int, mutation_probability: float, bpm: int):
@@ -185,13 +185,13 @@ def main(num_bars: int, num_notes: int, num_steps: int, pauses: bool, key: str, 
             offspring_b = mutation(offspring_b, num=num_mutations, probability=mutation_probability)
             next_generation += [offspring_a, offspring_b]
 
-        print(f"population {population_id} done")
+        print(f"Población {population_id} lista")
 
         events = genome_to_events(population[0], num_bars, num_notes, num_steps, pauses, key, scale, root, bpm)
         for e in events:
             e.play()
         s.start()
-        input("here is the no1 hit …")
+        input("Esta es la primera mejor melodía generada")
         s.stop()
         for e in events:
             e.stop()
@@ -202,19 +202,19 @@ def main(num_bars: int, num_notes: int, num_steps: int, pauses: bool, key: str, 
         for e in events:
             e.play()
         s.start()
-        input("here is the second best …")
+        input("Esta es la segunda mejor melodía generada")
         s.stop()
         for e in events:
             e.stop()
 
         time.sleep(1)
 
-        print("saving population midi …")
+        print("Guardando la población midi...")
         for i, genome in enumerate(population):
             save_genome_to_midi(f"{folder}/{population_id}/{scale}-{key}-{i}.mid", genome, num_bars, num_notes, num_steps, pauses, key, scale, root, bpm)
-        print("done")
+        print("Listo!")
 
-        running = input("continue? [Y/n]") != "n"
+        running = input("¿Desea continuar? [Y/n]: ") != "n"
         population = next_generation
         population_id += 1
 

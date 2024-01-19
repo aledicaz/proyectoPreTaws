@@ -6,6 +6,7 @@ from Midi_to_Images import extract_arrays_from_midi_file
 from Midi_to_Images import create_piano_roll_image
 from datetime import datetime  
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
 def get_recent_subfolder(midi_dir):
     subfolder_pattern = '^\d+$'  # Patrón para seleccionar carpetas numeradas
@@ -46,8 +47,8 @@ def obtener_dos_primeros_archivos(carpeta_principal):
 
 def main():
     # Ruta del directorio principal
-    midi_dir = r'C:\Users\Migi\PreTaws\proyectoPreTaws\midi_dir'
-    image_dir = r'C:\Users\Migi\PreTaws\proyectoPreTaws\images'
+    midi_dir = os.path.join(script_dir, 'midi_dir')
+    image_dir = os.path.join(script_dir, 'images')
 
     # Obtener la carpeta más reciente y su nombre
     recent_subfolder = get_recent_subfolder(midi_dir)

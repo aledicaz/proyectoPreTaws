@@ -77,13 +77,15 @@ for filename in os.listdir(midi_dir):
     if filename.endswith('.mid'):
         # Create the full path to the MIDI file
         filepath = os.path.join(midi_dir, filename)
-        
+        print(f"Processing file: {filepath}")
         # Load the midi file and extract arrays
         pitches, durations, start_times, parts = extract_arrays_from_midi_file(filepath)
-        
+        print("Arrays extracted successfully.")
         # Create image from arrays
         img = create_piano_roll_image(pitches, durations, start_times, parts, filepath)
-        
+        print("Image created successfully.")
         # Save the image with the same filename as the MIDI file
         save_path = os.path.join(image_dir, os.path.splitext(os.path.basename(filename))[0] + '_visual.png')
+        print(f"Saving image to: {save_path}")
         img.save(save_path)
+        print("Image saved successfully.")

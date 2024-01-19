@@ -6,6 +6,8 @@ from PIL import Image
 from Midi_to_Images import extract_arrays_from_midi_file, create_piano_roll_image
 from datetime import datetime
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
 def get_recent_subfolder(images_dir):
     subfolder_pattern = '^\d+$'
     subfolders = [f for f in os.listdir(images_dir) if os.path.isdir(os.path.join(images_dir, f)) and re.match(subfolder_pattern, f)]
@@ -17,8 +19,8 @@ def get_recent_subfolder(images_dir):
 
 def main():
     # Rutas de directorios
-    images_dir = r'C:\Users\Migi\PreTaws\proyectoPreTaws\images'
-    output_dir = r'C:\Users\Migi\PreTaws\proyectoPreTaws\output_files'
+    images_dir = os.path.join(script_dir, 'images')
+    output_dir = os.path.join(script_dir, 'output_files')
 
     # Obtener la subcarpeta más reciente
     recent_subfolder = get_recent_subfolder(images_dir)
