@@ -25,9 +25,11 @@ subsubfolders = sorted([f.path for f in os.scandir(last_subfolder) if f.is_dir()
 if subsubfolders:
     last_subsubfolder = subsubfolders[0]
     print(f"Archivos en la subcarpeta {last_subsubfolder}:")
-    for entry in os.scandir(last_subsubfolder):
-        if entry.is_file():
-            print(entry.name)
+    midi_files = [entry.name for entry in os.scandir(last_subsubfolder) if entry.is_file() and entry.name.endswith('.mid')][:1]
+
+    for midi_file in midi_files:
+        print(midi_file)
+        
 else:
     print(f"No hay subcarpetas en {last_subfolder}.")
     exit()
