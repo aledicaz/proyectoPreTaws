@@ -1,3 +1,5 @@
+
+
 import click
 from datetime import datetime
 from typing import List, Dict
@@ -7,6 +9,8 @@ import os
 
 
 from algorithms.genetic import generate_genome, Genome, selection_pair, single_point_crossover, mutation
+
+
 
 BITS_PER_NOTE = 4
 KEYS = ["C", "C#", "Db", "D", "D#", "Eb", "E", "F", "F#", "Gb", "G", "G#", "Ab", "A", "A#", "Bb", "B"]
@@ -147,7 +151,8 @@ def save_genome_to_midi(filename: str, genome: Genome, num_bars: int, num_notes:
 @click.option("--num-mutations", default=2, prompt='Número de mutaciones:', type=int)
 @click.option("--mutation-probability", default=0.5, prompt='Probabilidad de mutación:', type=float)
 @click.option("--bpm", default=128, type=int)
-def main(num_bars: int, num_notes: int, num_steps: int, pauses: bool, key: str, scale: str, root: int,
+
+def geneticGeneration(num_bars: int, num_notes: int, num_steps: int, pauses: bool, key: str, scale: str, root: int,
          population_size: int, num_mutations: int, mutation_probability: float, bpm: int):
 
     folder = folder = os.path.join("midi_dir", str(int(datetime.now().timestamp())))
@@ -220,4 +225,4 @@ def main(num_bars: int, num_notes: int, num_steps: int, pauses: bool, key: str, 
 
 
 if __name__ == '__main__':
-    main()
+    geneticGeneration()

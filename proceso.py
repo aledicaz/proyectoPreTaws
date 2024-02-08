@@ -45,7 +45,7 @@ def obtener_dos_primeros_archivos(carpeta_principal):
 
     return full_paths, latest_subfolder
 
-def main():
+def imagesGeneration():
     # Ruta del directorio principal
     midi_dir = os.path.join(script_dir, 'midi_dir')
     image_dir = os.path.join(script_dir, 'images')
@@ -78,5 +78,5 @@ def main():
                 piano_roll_image.save(image_path)
 
 if __name__ == "__main__":
-    main()
+    imagesGeneration()
 
