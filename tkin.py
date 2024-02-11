@@ -1,99 +1,239 @@
+import click
 import tkinter as tk
-from tkinter import ttk
+from tkinter import simpledialog
 from datetime import datetime
-import os
-import time
+from typing import List, Dict
 from midiutil import MIDIFile
 from pyo import *
-from algorithms.genetic import generate_genome, selection_pair, single_point_crossover, mutation
+from algorithms.genetic import generate_genome, Genome, selection_pair, single_point_crossover, mutation
+import random
+import os
+import time
 
 BITS_PER_NOTE = 4
 KEYS = ["C", "C#", "Db", "D", "D#", "Eb", "E", "F", "F#", "Gb", "G", "G#", "Ab", "A", "A#", "Bb", "B"]
 SCALES = ["major", "minorM", "dorian", "phrygian", "lydian", "mixolydian", "majorBlues", "minorBlues"]
 
-# Variables globales para almacenar los parámetros de entrada del usuario
-global num_bars, num_notes, num_steps, pauses, key, scale, root_note, population_size, num_mutations, mutation_probability, bpm
 
-def collect_inputs():
-    # Crear una nueva ventana de Tkinter
+def int_from_bits(bits: List[int]) -> int:
+    return int(sum([bit * pow(2, index) for index, bit in enumerate(bits)]))
+
+
+def genome_to_melody(genome: Genome, num_bars: int, num_notes: int, num_steps: int,
+                     pauses: int, key: str, scale: str, root: int) -> Dict[str, list]:
+    notes = [genome[i * BITS_PER_NOTE:i * BITS_PER_NOTE + BITS_PER_NOTE] for i in range(num_bars * num_notes)]
+
+    note_length = 4 / float(num_notes)
+
+    scl = EventScale(root=key, scale=scale, first=root)
+
+    melody = {
+        "notes": [],
+        "velocity": [],
+        "beat": []
+    }
+
+    for note in notes:
+        integer = int_from_bits(note)
+
+        if not pauses:
+            integer = int(integer % pow(2, BITS_PER_NOTE - 1))
+
+        if integer >= pow(2, BITS_PER_NOTE - 1):
+            melody["notes"] += [0]
+            melody["velocity"] += [0]
+            melody["beat"] += [note_length]
+        else:
+            if len(melody["notes"]) > 0 and melody["notes"][-1] == integer:
+                melody["beat"][-1] += note_length
+            else:
+                melody["notes"] += [integer]
+                melody["velocity"] += [127]
+                melody["beat"] += [note_length]
+
+    steps = []
+    for step in range(num_steps):
+        steps.append([scl[(note + step * 2) % len(scl)] for note in melody["notes"]])
+
+    melody["notes"] = steps
+    return melody
+
+
+def genome_to_events(genome: Genome, num_bars: int, num_notes: int, num_steps: int,
+                     pauses: bool, key: str, scale: str, root: int, bpm: int) -> [Events]:
+    melody = genome_to_melody(genome, num_bars, num_notes, num_steps, pauses, key, scale, root)
+
+    return [
+        Events(
+            midinote=EventSeq(step, occurrences=1),
+            midivel=EventSeq(melody["velocity"], occurrences=1),
+            beat=EventSeq(melody["beat"], occurrences=1),
+            attack=0.001,
+            decay=0.05,
+            sustain=0.5,
+            release=0.005,
+            bpm=bpm
+        ) for step in melody["notes"]
+    ]
+
+
+def fitness(genome: Genome, s: Server, num_bars: int, num_notes: int, num_steps: int,
+            pauses: bool, key: str, scale: str, root: int, bpm: int) -> int:
+    m = metronome(bpm)
+
+    events = genome_to_events(genome, num_bars, num_notes, num_steps, pauses, key, scale, root, bpm)
+    for e in events:
+        e.play()
+    s.start()
+
+    # Crear una ventana principal de Tkinter
     root = tk.Tk()
-    root.title("Parámetros de Generación de Melodía")
+    root.withdraw()
 
-    # Establecer un estilo (opcional)
-    style = ttk.Style()
-    style.theme_use('clam')  # Puedes probar diferentes temas: 'alt', 'default', 'clam', 'classic', etc.
+    # Utilizar simpledialog en la ventana principal
+    rating = simpledialog.askinteger("Rating", "Rating (0-5): ")
 
-    # Función para recoger los valores y cerrar la ventana
-    def submit():
-        global num_bars, num_notes, num_steps, pauses, key, scale, root_note, population_size, num_mutations, mutation_probability, bpm
-        num_bars = int(num_bars_entry.get())
-        num_notes = int(num_notes_entry.get())
-        num_steps = int(num_steps_entry.get())
-        pauses = bool(pauses_var.get())
-        key = key_entry.get()
-        scale = scale_entry.get()
-        root_note = int(root_note_entry.get())
-        population_size = int(population_size_entry.get())
-        num_mutations = int(num_mutations_entry.get())
-        mutation_probability = float(mutation_probability_entry.get())
-        bpm = int(bpm_entry.get())
-        root.destroy()
+    for e in events:
+        e.stop()
+    s.stop()
+    time.sleep(1)
 
-    # Crear y colocar widgets para recoger los parámetros
-    labels = ['Número de barras:', 'Número de notas por barra:', 'Número de pasos:', 'Permitir pausas (1=Sí, 0=No):',
-              'Clave musical:', 'Escala musical:', 'Nota raíz (entero):', 'Tamaño de la población:',
-              'Número de mutaciones:', 'Probabilidad de mutación (0.0 a 1.0):', 'BPM:']
-    entries = []
+    try:
+        rating = int(rating)
+    except ValueError:
+        rating = 0
 
-    for i, label in enumerate(labels):
-        ttk.Label(root, text=label).grid(row=i, column=0, padx=10, pady=5, sticky='w')
-    
-    num_bars_entry = ttk.Entry(root)
-    num_bars_entry.grid(row=0, column=1, padx=10, pady=5)
+    return rating
 
-    num_notes_entry = ttk.Entry(root)
-    num_notes_entry.grid(row=1, column=1, padx=10, pady=5)
 
-    num_steps_entry = ttk.Entry(root)
-    num_steps_entry.grid(row=2, column=1, padx=10, pady=5)
+def metronome(bpm: int):
+    met = Metro(time=1 / (bpm / 60.0)).play()
+    t = CosTable([(0, 0), (50, 1), (200, .3), (500, 0)])
+    amp = TrigEnv(met, table=t, dur=.25, mul=1)
+    freq = Iter(met, choice=[660, 440, 440, 440])
+    return Sine(freq=freq, mul=amp).mix(2).out()
 
-    pauses_var = tk.IntVar()
-    pauses_entry = ttk.Checkbutton(root, variable=pauses_var)
-    pauses_entry.grid(row=3, column=1, padx=10, pady=5, sticky='w')
 
-    key_entry = ttk.Entry(root)
-    key_entry.grid(row=4, column=1, padx=10, pady=5)
+def save_genome_to_midi(filename: str, genome: Genome, num_bars: int, num_notes: int, num_steps: int,
+                        pauses: bool, key: str, scale: str, root: int, bpm: int):
+    melody = genome_to_melody(genome, num_bars, num_notes, num_steps, pauses, key, scale, root)
 
-    scale_entry = ttk.Entry(root)
-    scale_entry.grid(row=5, column=1, padx=10, pady=5)
+    if len(melody["notes"][0]) != len(melody["beat"]) or len(melody["notes"][0]) != len(melody["velocity"]):
+        raise ValueError
 
-    root_note_entry = ttk.Entry(root)
-    root_note_entry.grid(row=6, column=1, padx=10, pady=5)
+    mf = MIDIFile(1)
 
-    population_size_entry = ttk.Entry(root)
-    population_size_entry.grid(row=7, column=1, padx=10, pady=5)
+    track = 0
+    channel = 0
 
-    num_mutations_entry = ttk.Entry(root)
-    num_mutations_entry.grid(row=8, column=1, padx=10, pady=5)
+    time = 0.0
+    mf.addTrackName(track, time, "Sample Track")
+    mf.addTempo(track, time, bpm)
 
-    mutation_probability_entry = ttk.Entry(root)
-    mutation_probability_entry.grid(row=9, column=1, padx=10, pady=5)
+    for i, vel in enumerate(melody["velocity"]):
+        if vel > 0:
+            for step in melody["notes"]:
+                mf.addNote(track, channel, step[i], time, melody["beat"][i], vel)
 
-    bpm_entry = ttk.Entry(root)
-    bpm_entry.grid(row=10, column=1, padx=10, pady=5)
+        time += melody["beat"][i]
 
-    submit_button = ttk.Button(root, text="Enviar", command=submit)
-    submit_button.grid(row=11, column=0, columnspan=2, pady=10)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with open(filename, "wb") as f:
+        mf.writeFile(f)
 
-    root.mainloop()
+
+def get_user_input():
+    root = tk.Tk()
+    root.withdraw()
+
+    num_bars = simpledialog.askinteger("Parámetro", "Número de barras:", minvalue=1)
+    num_notes = simpledialog.askinteger("Parámetro", "Número de notas por barra:", minvalue=1)
+    num_steps = simpledialog.askinteger("Parámetro", "Número de pasos:", minvalue=1)
+    pauses = simpledialog.askinteger("Parámetro", "¿Permitir pausas? (0 para no, 1 para sí):", minvalue=0, maxvalue=1)
+    key = simpledialog.askstring("Parámetro", "Clave musical:", initialvalue="C")
+    scale = simpledialog.askstring("Parámetro", "Escala musical:", initialvalue="major")
+    root_note = simpledialog.askinteger("Parámetro", "Nota raíz (entero):")
+    population_size = simpledialog.askinteger("Parámetro", "Tamaño de la población:", minvalue=1)
+    num_mutations = simpledialog.askinteger("Parámetro", "Número de mutaciones:", minvalue=0)
+    mutation_probability = simpledialog.askfloat("Parámetro", "Probabilidad de mutación (0.0 a 1.0):", minvalue=0.0, maxvalue=1.0)
+    bpm = simpledialog.askinteger("Parámetro", "BPM:", minvalue=1)
+
+    return num_bars, num_notes, num_steps, pauses, key, scale, root_note, population_size, num_mutations, mutation_probability, bpm
+
 
 def main():
-    # Llama a la función para mostrar la ventana de entrada
-    collect_inputs()
+    num_bars, num_notes, num_steps, pauses, key, scale, root_note, population_size, num_mutations, mutation_probability, bpm = get_user_input()
 
-    # A partir de aquí, puedes continuar con el resto de tu lógica de programa...
-    # El resto de tu código sigue aquí, asegurándote de usar las variables globales donde sea necesario
+    folder = os.path.join("midi_dir", str(int(datetime.now().timestamp())))
 
-# Si se ejecuta el script directamente, se inicia el programa principal
+    population = [generate_genome(num_bars * num_notes * BITS_PER_NOTE) for _ in range(population_size)]
+
+    s = Server().boot()
+
+    population_id = 0
+
+    running = True
+    while running:
+        random.shuffle(population)
+
+        population_fitness = [(genome, fitness(genome, s, num_bars, num_notes, num_steps, pauses, key, scale, root_note, bpm))
+                              for genome in population]
+
+        sorted_population_fitness = sorted(population_fitness, key=lambda e: e[1], reverse=True)
+
+        population = [e[0] for e in sorted_population_fitness]
+
+        next_generation = population[0:2]
+
+        for j in range(int(len(population) / 2) - 1):
+
+            def fitness_lookup(genome):
+                for e in population_fitness:
+                    if e[0] == genome:
+                        return e[1]
+                return 0
+
+            parents = selection_pair(population, fitness_lookup)
+            offspring_a, offspring_b = single_point_crossover(parents[0], parents[1])
+            offspring_a = mutation(offspring_a, num=num_mutations, probability=mutation_probability)
+            offspring_b = mutation(offspring_b, num=num_mutations, probability=mutation_probability)
+            next_generation += [offspring_a, offspring_b]
+
+        print(f"Población {population_id} lista")
+
+        events = genome_to_events(population[0], num_bars, num_notes, num_steps, pauses, key, scale, root_note, bpm)
+        for e in events:
+            e.play()
+        s.start()
+        simpledialog.messagebox.showinfo("Primera mejor melodía generada", "Esta es la primera mejor melodía generada")
+        s.stop()
+        for e in events:
+            e.stop()
+
+        time.sleep(1)
+
+        events = genome_to_events(population[1], num_bars, num_notes, num_steps, pauses, key, scale, root_note, bpm)
+        for e in events:
+            e.play()
+        s.start()
+        simpledialog.messagebox.showinfo("Segunda mejor melodía generada", "Esta es la segunda mejor melodía generada")
+        s.stop()
+        for e in events:
+            e.stop()
+
+        time.sleep(1)
+
+        print("Guardando la población midi...")
+        for i, genome in enumerate(population):
+            save_genome_to_midi(f"{folder}/{population_id}/{scale}-{key}-{i}.mid", genome, num_bars, num_notes,
+                                num_steps, pauses, key, scale, root_note, bpm)
+        print("¡Listo!")
+
+        running = simpledialog.askstring("Continuar", "¿Deseas continuar? [Y/n]: ") != "n"
+        population = next_generation
+        population_id += 1
+
+
+# Si se ejecuta el script directamente, se inicia el comando de línea de comandos de Click
 if __name__ == '__main__':
     main()
