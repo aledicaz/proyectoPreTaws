@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/globals.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+  <div class="desktop">
+    <div class="overlap-group-wrapper">
+      <div class="overlap-group2">
+        <div class="div1">
+          <img class="logo-removebg2" src="{{ url_for('static', filename='imgs/logo-removebg-preview-1.png') }}" />
+          <p class="text-w" id="Titulo" ></p>
+          
+        </div>
+        <div class="div-col">
+
+            <form class= "form" action="{{ url_for('mis_canciones') }}" method="post">
+                <div class="div4" id="contenedorBotones">
+                    <button class="button" type="submit" id="btnGenerarSonidos">Mis Canciones</button> 
+                </div>
+            </form>
+            <div class="space">
+                <form class= "form" action="{{ url_for('generate_lyrics_route') }}" method="post">
+                    <div class="div4" id="contenedorBotones">
+                        <button class="button" type="submit" id="continuar">Componer Canción</button> 
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        
+        
+      </div>
+    </div>
+  </div>
+</body>
+
+<script>
+    var NombreUsuario = localStorage.getItem("Nombre");
+    document.getElementById("Nombre").innerText = NombreUsuario;
+        
+</script>
+</html>

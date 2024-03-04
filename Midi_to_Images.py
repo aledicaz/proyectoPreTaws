@@ -2,9 +2,13 @@ from music21 import *
 import os
 from PIL import Image
 
+from music21 import *
+import os
+from PIL import Image
+
 def extract_arrays_from_midi_file(midi_file_path):
     # Load the MIDI file using music21
-    midi_file = converter.parse(midi_file_path)
+    midi_file = converter.parseFile(midi_file_path)
 
     # Create the arrays
     pitches = []
@@ -37,7 +41,7 @@ def extract_arrays_from_midi_file(midi_file_path):
 
 def create_piano_roll_image(pitches, durations, start_times, parts, filename):
     # Load the MIDI file
-    midi_file = converter.parse(filename)
+    midi_file = converter.parseFile(filename)
 
     # Determine the minimum start time of any element in the MIDI file
     min_start_time = min(start_times)
@@ -63,29 +67,5 @@ def create_piano_roll_image(pitches, durations, start_times, parts, filename):
         # Draw the note in the image with the corresponding part color
         img.paste(part_colors[part % len(part_colors)], (x, y, x+w, y+h))
 
-        # Add a black pixel to separate notes
-        if w > 4:
-            img.putpixel((x+(w-1), y), (0, 0, 0))
-
     return img
 
-midi_dir = 'C:/Users/Migi/PreTaws/proyectoPreTaws/midi_dir'
-image_dir = 'C:/Users/Migi/PreTaws/proyectoPreTaws/images'
-
-# Iterate over all midi files in the directory
-for filename in os.listdir(midi_dir):
-    if filename.endswith('.mid'):
-        # Create the full path to the MIDI file
-        filepath = os.path.join(midi_dir, filename)
-        print(f"Processing file: {filepath}")
-        # Load the midi file and extract arrays
-        pitches, durations, start_times, parts = extract_arrays_from_midi_file(filepath)
-        print("Arrays extracted successfully.")
-        # Create image from arrays
-        img = create_piano_roll_image(pitches, durations, start_times, parts, filepath)
-        print("Image created successfully.")
-        # Save the image with the same filename as the MIDI file
-        save_path = os.path.join(image_dir, os.path.splitext(os.path.basename(filename))[0] + '_visual.png')
-        print(f"Saving image to: {save_path}")
-        img.save(save_path)
-        print("Image saved successfully.")

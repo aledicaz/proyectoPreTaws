@@ -1,5 +1,3 @@
-
-
 import click
 from datetime import datetime
 from typing import List, Dict
@@ -87,6 +85,7 @@ def fitness(genome: Genome, s: Server, num_bars: int, num_notes: int, num_steps:
     for e in events:
         e.play()
     s.start()
+   
 
     rating = input("Rating (0-5): ")
 
@@ -151,7 +150,6 @@ def save_genome_to_midi(filename: str, genome: Genome, num_bars: int, num_notes:
 @click.option("--num-mutations", default=2, prompt='Número de mutaciones:', type=int)
 @click.option("--mutation-probability", default=0.5, prompt='Probabilidad de mutación:', type=float)
 @click.option("--bpm", default=128, type=int)
-
 
 def geneticGeneration(num_bars: int, num_notes: int, num_steps: int, pauses: bool, key: str, scale: str, root: int,
          population_size: int, num_mutations: int, mutation_probability: float, bpm: int):
@@ -224,53 +222,6 @@ def geneticGeneration(num_bars: int, num_notes: int, num_steps: int, pauses: boo
         population = next_generation
         population_id += 1
 
-def runGeneticGeneration(num_bars, num_notes, num_steps, pauses, key, scale, root,
-                         population_size, num_mutations, mutation_probability, bpm):
-    folder = os.path.join("midi_dir", str(int(datetime.now().timestamp())))
-    os.makedirs(folder, exist_ok=True)
-
-    # Inicia el servidor de sonido Pyo
-    s = Server().boot()
-    s.start()
-
-    # Genera la población inicial
-    population = [generate_genome(num_bars * num_notes * BITS_PER_NOTE) for _ in range(population_size)]
-
-    for population_id in range(1):  # Simplificado para ejecutar una generación
-        random.shuffle(population)
-
-        # Evalúa la aptitud de cada genoma en la población
-        population_fitness = []
-        for genome in population:
-            fitness_score = fitness(genome, num_bars, num_notes, num_steps, pauses, key, scale, root, bpm)
-            population_fitness.append((genome, fitness_score))
-
-        # Ordena la población según su aptitud
-        sorted_population_fitness = sorted(population_fitness, key=lambda e: e[1], reverse=True)
-
-        # Selecciona los mejores para la siguiente generación
-        next_generation = [genome for genome, _ in sorted_population_fitness[:2]]
-
-        # Aplica crossover y mutación para crear la próxima generación
-        for _ in range(int(len(population) / 2) - 1):
-            parents = selection_pair(population_fitness)
-            offspring_a, offspring_b = single_point_crossover(parents[0], parents[1])
-            offspring_a = mutation(offspring_a, num_mutations, mutation_probability)
-            offspring_b = mutation(offspring_b, num_mutations, mutation_probability)
-            next_generation.extend([offspring_a, offspring_b])
-
-        population = next_generation
-
-        # Opcional: Aquí podrías reproducir la mejor melodía o realizar alguna acción con ella
-        # Por simplificación, vamos directamente a guardar los genomas en archivos MIDI
-        for i, genome in enumerate(population):
-            midi_filename = f"{folder}/{population_id}_{i}.mid"
-            save_genome_to_midi(midi_filename, genome, num_bars, num_notes, num_steps, pauses, key, scale, root, bpm)
-
-    s.stop()
-
-    # Devuelve la ruta del directorio donde se guardaron los archivos MIDI para su descarga
-    return folder
 
 if __name__ == '__main__':
     geneticGeneration()

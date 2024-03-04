@@ -1,61 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Melodías</title>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/globals.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
 </head>
 <body>
-    <h1>Generador de Melodías</h1>
-    <form action="/" method="post">
-        <label for="num_bars">Número de compases:</label>
-        <input type="number" id="num_bars" name="num_bars" required><br>
+  <div class="desktop">
+    <div class="overlap-group-wrapper">
+      <div class="overlap-group">
+        <img class="logo-removebg" src="{{ url_for('static', filename='imgs/logo-removebg-preview-1.png') }}" />
+        <form class="form" action="{{ url_for('pagina1') }}" method="post">
+          <div class="input-index">
+            <input type="text" class="text-input" id="name" name="name" placeholder="Escriba su nombre" />
 
-        <label for="num_notes">Notas por compás:</label>
-        <input type="number" id="num_notes" name="num_notes" required><br>
-
-        <label for="num_steps">Número de pasos:</label>
-        <input type="number" id="num_steps" name="num_steps" required><br>
-
-        <label for="pauses">¿Desea incluir pausas?</label>
-        <select id="pauses" name="pauses" required>
-            <option value="true">Sí</option>
-            <option value="false">No</option>
-        </select><br>
-
-        <label for="key">Tonalidad:</label>
-        <select id="key" name="key" required>
-            <!-- Asegúrate de incluir todas las opciones de tonalidad aquí -->
-            <option value="C">C</option>
-            <option value="C#">C#</option>
-            <option value="Db">Db</option>
-            <!-- Añade el resto de las tonalidades -->
-        </select><br>
-
-        <label for="scale">Escala:</label>
-        <select id="scale" name="scale" required>
-            <!-- Asegúrate de incluir todas las opciones de escala aquí -->
-            <option value="major">Mayor</option>
-            <option value="minorM">Menor Melódica</option>
-            <!-- Añade el resto de las escalas -->
-        </select><br>
-
-        <label for="root">Tónica de la escala:</label>
-        <input type="number" id="root" name="root" required><br>
-
-        <label for="population_size">Tamaño de la población:</label>
-        <input type="number" id="population_size" name="population_size" required><br>
-
-        <label for="num_mutations">Número de mutaciones:</label>
-        <input type="number" id="num_mutations" name="num_mutations" required><br>
-
-        <label for="mutation_probability">Probabilidad de mutación:</label>
-        <input type="number" step="0.01" min="0" max="1" id="mutation_probability" name="mutation_probability" required><br>
-
-        <label for="bpm">BPM (beats por minuto):</label>
-        <input type="number" id="bpm" name="bpm" required><br>
-
-        <button type="submit">Generar Melodía</button>
-    </form>
+          </div>
+          <div>
+            <button class="button" onclick="guardarNombre()">Empezar Ahora</button>
+          </div>
+          
+        </form>
+        
+      </div>
+    </div>
+  </div>
 </body>
+<script>
+  function guardarNombre() {
+      var nombre = document.getElementById('name').value; // Asume que tienes un input con id 'nombreInput'
+      localStorage.setItem('Nombre', nombre);
+  }
+  </script>
 </html>

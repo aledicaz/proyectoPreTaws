@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/globals.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <style>
+    .desktop .form {
+      display: flex;
+      flex-direction: row;
+      align-items: center; /* Alinea verticalmente al centro */
+      justify-content: flex-start; /* Alinea los elementos a la izquierda */
+      padding-bottom: -40px;
+    }
+
+    .desktop .input-text {
+      width: 302px; /* Ajusta el ancho según tus necesidades */
+      height: 60px;
+      font-size: 17.5px;
+      margin-right: 30px; /* Espacio entre los cuadros de texto */
+      border: none; /* Quita el borde original */
+      border-bottom: 2px solid #555; /* Borde solo en la parte inferior, grosor ajustado */
+      box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.2); /* Sombra solo en la parte inferior */
+      padding: 15px; /* Espaciado interno */
+      font-family: "Gruppo", Helvetica;
+      color: #000; /* Cambié el color del texto a negro (#000) */
+    }
+
+    .button.custom-button.smaller-button {
+      width: 300px; /* Ajusta el ancho según tus necesidades */
+      height: 80px; /* Ajusta la altura según tus necesidades */
+      font-size: 30px; /* Ajusta el tamaño de fuente según tus necesidades */
+      margin-top: 4px; /* Ajusta el margen superior negativo según tus necesidades */
+      margin-right: 100px;
+    }
+
+    .lyrics-container {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      margin-top: 10px; /* Espaciado superior entre el formulario y la letra generada */
+      margin-right: 100px;
+      margin-left: 100px;
+      margin-bottom: 200px; /* Espaciado inferior entre el contenedor de la letra y el borde inferior */
+    }
+
+    .canciones-container {
+      margin-top: 80px;
+      align-items: center;
+    }
+
+    .generated-lyrics {
+      width: 60%; /* Ajusta el ancho del contenedor de la letra según tus necesidades */
+      padding: 10px; /* Añade espaciado interno */
+      overflow-y: auto; /* Agrega scroll vertical */
+      max-height: 400px; /* Altura máxima del contenedor antes de que aparezca el scroll */
+      font-family: "Inter", Helvetica; /* Cambia el tipo de fuente */
+      white-space: pre-line; /* Mantiene los saltos de línea */
+      text-align: center; /* Centra el texto */
+      margin-bottom: 20px; /* Separación del borde inferior */
+      border: none; /* Elimina el borde */
+      scrollbar-width: thin; /* Ancho del scrollbar */
+      scrollbar-color: #555 transparent; /* Color del scrollbar */
+    }
+
+    .finish-button {
+      width: 30%; /* Ajusta el ancho del botón "Terminar" según tus necesidades */
+      height: 80px; /* Ajusta la altura según tus necesidades */
+      font-size: 24px; /* Ajusta el tamaño de fuente según tus necesidades */
+      margin-left: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div class="desktop">
+    <div class="overlap-group-wrapper">
+      <div class="overlap-group2">
+        <div class="div1">
+          <img class="logo-removebg2" src="{{ url_for('static', filename='imgs/logo-removebg-preview-1.png') }}" />
+          <p class="text-w" id="Titulo" >Hola <strong  id="Nombre"></strong> por favor completa<br />los siguientes datos</p>
+        </div>
+        <form class="form" action="{{ url_for('generate_lyrics_route') }}" method="post">
+          <button class="button custom-button smaller-button" type="submit">Generar Letra</button>
+          <input type="text" class="input-text" name="mood" placeholder="Describe el ambiente de la canción" />
+          <input type="text" class="input-text" name="prompt" placeholder="Escribe una frase clave para la letra" />
+        </form>
+        {% if generated_lyrics %}
+          <div class="lyrics-container">
+            
+            <div class="generated-lyrics">
+              <p>Letra Generada:</p>
+              <p>{{ generated_lyrics }}</p>
+            </div>
+            
+            <form action="{{ url_for('mis_canciones2') }}" method="post">
+            <div class="canciones-container">
+              <button class="button custom-button finish-button" type="submit">Mis Canciones</button>
+
+            </div>
+            </form>
+            {% endif %}
+          </div>
+        
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+  window.onload = function() {
+      var NombreUsuario = localStorage.getItem("Nombre");
+      document.getElementById("Nombre").innerText = NombreUsuario;
+    }         
+</script>
+</html>
